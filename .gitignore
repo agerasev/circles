@@ -1,0 +1,11 @@
+*~
+
+android/*
+!android/appinfo
+!android/AndroidManifest.xml
+!android/jni/
+
+desktop/*
+!desktop/appinfo
+!desktop/makefile
+!desktop/source
