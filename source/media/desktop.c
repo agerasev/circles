@@ -200,3 +200,13 @@ void Media_renderFrame()
 	}
 	SDL_GL_SwapWindow(__context.window);
 }
+
+int Media_enableSensor(unsigned int type, unsigned long rate)
+{
+	return -1;
+}
+
+int Media_disableSensor(unsigned int type)
+{
+	return -1;
+}

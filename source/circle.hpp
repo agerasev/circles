@@ -33,6 +33,7 @@ public:
 	vec2 getVelocity() const;
 	
 	void addForce(const vec2 &f);
+	void accelerate(const vec2 &a);
 	
 	void step(double dt);
 	

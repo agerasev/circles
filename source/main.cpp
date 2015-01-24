@@ -31,10 +31,12 @@ void handleEvent(const Media_Event *event, void *data)
 		break;
 	case MEDIA_SHOWN:
 		state->wait = 0;
+		Media_enableSensor(MEDIA_ACCELEROMETER,(1000L/30)*1000);
 		printInfo("Shown\n");
 		break;
 	case MEDIA_HIDDEN:
 		state->wait = 1;
+		Media_disableSensor(MEDIA_ACCELEROMETER);
 		printInfo("Hidden\n");
 		break;
 	case MEDIA_INIT_SURFACE:
@@ -73,6 +75,17 @@ void handleEvent(const Media_Event *event, void *data)
 			break;
 		}
 		//printInfo("Motion ( %d, %d )\n", static_cast<int>(pos.x()), static_cast<int>(pos.y()));
+		break;
+	case MEDIA_SENSOR:
+		switch(event->sensor)
+		{
+		case MEDIA_ACCELEROMETER:
+			state->pool->accelerate(-vec2(event->value.x,event->value.y));
+			// printInfo("Accelerometer ( %f, %f, %f)\n",event->value.x,event->value.y,event->value.z);
+			break;
+		default:
+			break;
+		}
 		break;
 	default:
 		break;
@@ -118,6 +131,7 @@ int main()
 			}
 		}
 		
+		// printInfo("Frame\n");
 		Media_renderFrame();
 	}
 	

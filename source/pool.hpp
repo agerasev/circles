@@ -35,8 +35,10 @@ public:
 	void dragCircles(const vec2 &p);
 	void dropCircles();
 	
+	void accelerate(const vec2 &a);
 	void collide();
 	void interact();
 	void step(double dt);
+	
 	void draw() const;
 };

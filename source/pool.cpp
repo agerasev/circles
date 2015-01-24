@@ -60,6 +60,13 @@ void Pool::dropCircles()
 	fix_list.clear();
 }
 
+void Pool::accelerate(const vec2 &a)
+{
+	for(Circle *c : list)
+	{
+		c->accelerate(a);
+	}
+}
 void Pool::collide()
 {
 	for(Circle *c : fix_list)

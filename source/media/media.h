@@ -14,10 +14,15 @@
 
 #define MEDIA_MOTION            0x10
 
+#define MEDIA_SENSOR            0x20
+
 /* Actions */
 #define MEDIA_ACTION_UP         0x01
 #define MEDIA_ACTION_DOWN       0x02
 #define MEDIA_ACTION_MOVE       0x03
+
+/* Sensors */
+#define MEDIA_ACCELEROMETER     0x10
 
 typedef struct Media_IVec2
 {
@@ -35,6 +40,7 @@ typedef struct Media_Event
 {
 	unsigned int type;
 	unsigned int action;
+	unsigned int sensor;
 	Media_FVec3 value;
 	Media_IVec2 rect;
 } 
@@ -55,6 +61,9 @@ void Media_waitForEvent();
 void Media_setRenderer(void (*renderer)(void*), void *data);
 
 void Media_renderFrame();
+
+int  Media_enableSensor(unsigned int type, unsigned long rate);
+int  Media_disableSensor(unsigned int type);
 
 #ifdef __ANDROID__
 int main();

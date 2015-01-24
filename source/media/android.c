@@ -46,11 +46,15 @@ struct engine
 	void *renderer_data;
 	
 	EGLDisplay display;
-  EGLSurface surface;
-  EGLContext context;
-  int32_t width;
-  int32_t height;
-  int frame_counter;
+	EGLSurface surface;
+	EGLContext context;
+	int32_t width;
+	int32_t height;
+	int frame_counter;
+  
+	ASensorManager* sensorManager;
+	const ASensor* accelerometerSensor;
+	ASensorEventQueue* sensorEventQueue;
 };
 static struct engine engine;
 
@@ -68,8 +72,8 @@ static void pushEvent(const Media_Event *event)
 static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 {
 	Media_Event m_event;
-  switch(AInputEvent_getType(event))
-  {
+	switch(AInputEvent_getType(event))
+	{
 	case AINPUT_EVENT_TYPE_MOTION:
 		m_event.type = MEDIA_MOTION;
 		switch(AInputEvent_getSource(event))
@@ -113,40 +117,40 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
 	printInfo("Command %d\n",cmd);
 	switch(cmd) 
 	{
-		case APP_CMD_SAVE_STATE:
-			event.type = MEDIA_SAVE_STATE;
-			pushEvent(&event);
-			break;
-		case APP_CMD_INIT_WINDOW:
-			initDisplay();
-			event.type = MEDIA_INIT_SURFACE;
-			pushEvent(&event);
-			event.type = MEDIA_RESIZE_SURFACE;
-			event.rect.x = engine.width;
-			event.rect.y = engine.height;
-			pushEvent(&event);
-			break;
-		case APP_CMD_TERM_WINDOW:
-			termDisplay();
-			event.type = MEDIA_TERM_SURFACE;
-			pushEvent(&event);
-			break;
-		case APP_CMD_CONFIG_CHANGED:
-			engine.frame_counter = 4;
-		case APP_CMD_GAINED_FOCUS:
-			event.type = MEDIA_SHOWN;
-			pushEvent(&event);
-			break;
-		case APP_CMD_LOST_FOCUS:
-			event.type = MEDIA_HIDDEN;
-			pushEvent(&event);
-			break;
-		case APP_CMD_DESTROY:
-			event.type = MEDIA_QUIT;
-			pushEvent(&event);
-			break;
-		default:
-			break;
+	case APP_CMD_SAVE_STATE:
+		event.type = MEDIA_SAVE_STATE;
+		pushEvent(&event);
+		break;
+	case APP_CMD_INIT_WINDOW:
+		initDisplay();
+		event.type = MEDIA_INIT_SURFACE;
+		pushEvent(&event);
+		event.type = MEDIA_RESIZE_SURFACE;
+		event.rect.x = engine.width;
+		event.rect.y = engine.height;
+		pushEvent(&event);
+		break;
+	case APP_CMD_TERM_WINDOW:
+		termDisplay();
+		event.type = MEDIA_TERM_SURFACE;
+		pushEvent(&event);
+		break;
+	case APP_CMD_CONFIG_CHANGED:
+		engine.frame_counter = 4;
+	case APP_CMD_GAINED_FOCUS:
+		event.type = MEDIA_SHOWN;
+		pushEvent(&event);
+		break;
+	case APP_CMD_LOST_FOCUS:
+		event.type = MEDIA_HIDDEN;
+		pushEvent(&event);
+		break;
+	case APP_CMD_DESTROY:
+		event.type = MEDIA_QUIT;
+		pushEvent(&event);
+		break;
+	default:
+		break;
 	}
 }
 
@@ -165,6 +169,11 @@ void android_main(struct android_app* state)
 	state->onAppCmd = engine_handle_cmd;
 	state->onInputEvent = engine_handle_input;
 	engine.app = state;
+	
+	// Prepare to monitor accelerometer
+  engine.sensorManager = ASensorManager_getInstance();
+  engine.accelerometerSensor = ASensorManager_getDefaultSensor(engine.sensorManager,ASENSOR_TYPE_ACCELEROMETER);
+  engine.sensorEventQueue = ASensorManager_createEventQueue(engine.sensorManager,state->looper, LOOPER_ID_USER, NULL, NULL);
 	
 	main();
 }
@@ -221,6 +230,25 @@ static void engine_handle_events(int mode)
 		if(mode)
 		{
 			break;
+		}
+		
+		// If a sensor has data, process it now.
+		if (ident == LOOPER_ID_USER) 
+		{
+			if (engine.accelerometerSensor != NULL) 
+			{
+				Media_Event m_event;
+				ASensorEvent event;
+				while(ASensorEventQueue_getEvents(engine.sensorEventQueue,&event,1) > 0) 
+				{
+					m_event.type = MEDIA_SENSOR;
+					m_event.sensor = MEDIA_ACCELEROMETER;
+					m_event.value.x = event.acceleration.x;
+					m_event.value.y = event.acceleration.y;
+					m_event.value.z = event.acceleration.z;
+					pushEvent(&m_event);
+				}
+			}
 		}
 		
 		// Check if we are exiting.
@@ -347,4 +375,19 @@ void Media_renderFrame()
 		engine.renderer(engine.renderer_data);
 	}
 	eglSwapBuffers(engine.display, engine.surface);
+}
+
+int Media_enableSensor(unsigned int type, unsigned long rate)
+{
+	if(type == MEDIA_ACCELEROMETER && engine.accelerometerSensor != NULL) {
+		ASensorEventQueue_enableSensor(engine.sensorEventQueue,engine.accelerometerSensor);
+		ASensorEventQueue_setEventRate(engine.sensorEventQueue,engine.accelerometerSensor,rate);
+	}
+}
+
+int Media_disableSensor(unsigned int type)
+{
+	if(type == MEDIA_ACCELEROMETER && engine.accelerometerSensor != NULL) {
+		ASensorEventQueue_disableSensor(engine.sensorEventQueue,engine.accelerometerSensor);
+	}
 }

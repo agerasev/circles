@@ -36,6 +36,10 @@ void Circle::addForce(const vec2 &f)
 {
 	acc += f*rm;
 }
+void Circle::accelerate(const vec2 &a)
+{
+	acc += a;
+}
 
 void Circle::step(double dt)
 {
