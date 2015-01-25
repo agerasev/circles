@@ -2,8 +2,8 @@
 
 #include <graphics/graphics.h>
 
-Pool::Pool(double el, double fr, double del, double dfr) :
-	elast(el), frict(fr),
+Pool::Pool(double el, double fr, double mfr, double del, double dfr) :
+	elast(el), frict(fr), min_frict(mfr),
 	drag_elast(del), drag_frict(dfr)
 {
 	
@@ -81,22 +81,22 @@ void Pool::collide()
 		dist = tb - c->getPosition().y() - c->getRadius();
 		if(dist < 0.0)
 		{
-			c->addForce(elast*vec2(0.0,dist) + frict*vec2(0.0,c->getVelocity().y())*dist);
+			c->addForce(elast*vec2(0.0,dist) + (frict*dist - min_frict)*vec2(0.0,c->getVelocity().y()));
 		}
 		dist = c->getPosition().y() - c->getRadius() - bb;
 		if(dist < 0.0)
 		{
-			c->addForce(elast*vec2(0.0,-dist) + frict*vec2(0.0,c->getVelocity().y())*dist);
+			c->addForce(elast*vec2(0.0,-dist) + (frict*dist - min_frict)*vec2(0.0,c->getVelocity().y()));
 		}
 		dist = rb - c->getPosition().x() - c->getRadius();
 		if(dist < 0.0)
 		{
-			c->addForce(elast*vec2(dist,0.0) + frict*vec2(c->getVelocity().x(),0.0)*dist);
+			c->addForce(elast*vec2(dist,0.0) + (frict*dist - min_frict)*vec2(c->getVelocity().x(),0.0));
 		}
 		dist = c->getPosition().x() - c->getRadius() - lb;
 		if(dist < 0.0)
 		{
-			c->addForce(elast*vec2(-dist,0.0) + frict*vec2(c->getVelocity().x(),0.0)*dist);
+			c->addForce(elast*vec2(-dist,0.0) + (frict*dist - min_frict)*vec2(c->getVelocity().x(),0.0));
 		}
 	}
 }
@@ -119,8 +119,8 @@ void Pool::interact()
 				dir = dir/dist;
 				double dev = coll_dist - dist;
 				vec2 rel_vel = a->getVelocity() - b->getVelocity();
-				a->addForce((elast*dev - frict*(dir*rel_vel)*dev)*dir);
-				b->addForce((-elast*dev + frict*(dir*rel_vel)*dev)*dir);
+				a->addForce((elast*dev - frict*(dir*rel_vel)*(dev + min_frict))*dir);
+				b->addForce((-elast*dev + frict*(dir*rel_vel)*(dev + min_frict))*dir);
 			}
 		}
 	}

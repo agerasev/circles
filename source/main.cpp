@@ -14,6 +14,7 @@ struct State
 	int width;
 	int height;
 	bool ready;
+	vec2 gravity;
 };
 
 void handleEvent(const Media_Event *event, void *data)
@@ -80,7 +81,7 @@ void handleEvent(const Media_Event *event, void *data)
 		switch(event->sensor)
 		{
 		case MEDIA_ACCELEROMETER:
-			state->pool->accelerate(-vec2(event->value.x,event->value.y));
+			state->gravity = -vec2(event->value.x,event->value.y)/20.0;
 			// printInfo("Accelerometer ( %f, %f, %f)\n",event->value.x,event->value.y,event->value.z);
 			break;
 		default:
@@ -103,12 +104,12 @@ int main()
 {
 	Media_init();
 	
-	Pool pool(40.0,1.0,20.0,20.0);
+	Pool pool(40.0,1.0,1.0,20.0,20.0);
 	pool.addCircle(new Circle(60.0f,60.0f,vec2(-70.0,-50.0),BLUE));
 	pool.addCircle(new Circle(70.0f,70.0f,vec2(70.0,-50.0),GREEN));
 	pool.addCircle(new Circle(80.0f,80.0f,vec2(0.0,100.0),RED));
 	
-	State state = {0,0,&pool,0,0,false};
+	State state = {0,0,&pool,0,0,false,vec2(0.0,-9.0)/20.0};
 	Media_setEventListener(handleEvent,static_cast<void*>(&state));
 	
 	Media_setRenderer(render,&pool);
@@ -125,6 +126,7 @@ int main()
 		{
 			for(int i = 0; i < ITER_PER_FRAME; ++i)
 			{
+				pool.accelerate(state.gravity);
 				pool.interact();
 				pool.collide();
 				pool.step(1.0/ITER_PER_FRAME);

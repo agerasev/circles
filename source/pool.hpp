@@ -11,7 +11,7 @@ private:
 	std::list<Circle*> list;
 	double elast;
 	double frict;
-	
+	double min_frict;
 	double drag_elast;
 	double drag_frict;
 	
@@ -22,7 +22,7 @@ private:
 	bool fixed = false;
 	
 public:
-	Pool(double el, double fr, double del, double dfr);
+	Pool(double el, double fr, double mfr, double del, double dfr);
 	~Pool();
 	
 	void addCircle(Circle *c);
