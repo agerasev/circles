@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# updating android project
+android update project -p ./android -t 1 -n app --subprojects

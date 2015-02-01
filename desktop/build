@@ -1,0 +1,14 @@
+#!/bin/bash
+
+BUILD_DIR='desktop'
+
+mkdir -p ./desktop/obj/
+mkdir -p ./desktop/obj/source/
+
+DIRS=$(cd ./desktop/source; find -L . -type d)
+cd ./desktop/obj/source
+mkdir -p $DIRS
+
+cd ../../
+
+make

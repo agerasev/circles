@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# [ $1 - device ]
+
+DEVOPT="-s $1"
+if [ -z "$1" ]
+then
+	DEVOPT=""
+fi
+
+cd ./android
+
+PACKAGE=$(awk -F'"' '/package/{print $2}' AndroidManifest.xml)
+
+echo "uninstall"
+adb $DEVOPT shell pm uninstall $PACKAGE
+
+echo "install"
+adb $DEVOPT install ./bin/app-debug.apk
+
+echo "run installed application"
+adb $DEVOPT shell monkey -p $PACKAGE -c android.intent.category.LAUNCHER 1
+
+trap "echo 'force stop'; adb $DEVOPT shell am force-stop $PACKAGE" SIGINT SIGTERM
+
+echo "waiting"
+adb $DEVOPT logcat -s libmedia_log

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+cd ./android/
+
+echo "compile native code"
+ndk-build
+if [ $? -ne 0 ]; then exit; fi
+
+echo "build project"
+JAVA_HOME=/usr/lib/jvm/default-java/ ant debug
+if [ $? -ne 0 ]; then exit; fi

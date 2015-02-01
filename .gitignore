@@ -4,7 +4,12 @@ android/*
 !android/AndroidManifest.xml
 !android/jni/
 !android/res/
+!android/update
+!android/build
+!android/run
 
 desktop/*
 !desktop/makefile
 !desktop/source
+!desktop/build
+!desktop/run
