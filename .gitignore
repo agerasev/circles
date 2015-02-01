@@ -1,11 +1,10 @@
 *~
 
 android/*
-!android/appinfo
 !android/AndroidManifest.xml
 !android/jni/
+!android/res/
 
 desktop/*
-!desktop/appinfo
 !desktop/makefile
 !desktop/source

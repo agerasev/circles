@@ -12,7 +12,7 @@ CXXFLAGS = -I./source $(_CXXFLAGS) $(_DESKTOP_CXXFLAGS)
 HEADERS = $(_HEADERS)
 SOURCES = $(_DESKTOP_SOURCES) $(_SOURCES)
 OBJ = $(SOURCES:%=$(OBJDIR)/%.o)
-BIN = mynativeapp
+BIN = app
 
 all: $(BIN)
 
