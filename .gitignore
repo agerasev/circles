@@ -13,3 +13,9 @@ desktop/*
 !desktop/source
 !desktop/build
 !desktop/run
+
+*.creator
+*.files
+*.includes
+*.config
+*.user

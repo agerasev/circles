@@ -22,7 +22,7 @@ private:
 public:
 
 	Circle(
-		double m, // mass
+	  double m, // mass
 		double r, // radius
 		const vec2 &p, // position
 		unsigned c // color

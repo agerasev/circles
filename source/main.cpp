@@ -17,110 +17,130 @@ struct State
 	vec2 gravity;
 };
 
-void handleEvent(const Media_Event *event, void *data)
+void handleAppEvent(Media_App *app, const Media_AppEvent *event)
 {
-	State *state = static_cast<State*>(data);
-	vec2 pos;
+	State *state = static_cast<State*>(app->data);
 	switch(event->type)
 	{
-	case MEDIA_SAVE_STATE:
+	case MEDIA_APP_SAVESTATE:
 		printInfo("Save state\n");
 		break;
-	case MEDIA_QUIT:
+	case MEDIA_APP_QUIT:
 		state->done = 1;
 		printInfo("Quit\n");
 		break;
-	case MEDIA_SHOWN:
+	case MEDIA_APP_SHOW:
 		state->wait = 0;
-		Media_enableSensor(MEDIA_ACCELEROMETER,(1000L/30)*1000);
-		printInfo("Shown\n");
+		Media_enableSensor(app,MEDIA_SENSOR_ACCELEROMETER,(1000L/30)*1000);
+		printInfo("Show\n");
 		break;
-	case MEDIA_HIDDEN:
+	case MEDIA_APP_HIDE:
 		state->wait = 1;
-		Media_disableSensor(MEDIA_ACCELEROMETER);
-		printInfo("Hidden\n");
-		break;
-	case MEDIA_INIT_SURFACE:
-		printInfo("Init surface\n");
-		initGraphics();
-		break;
-	case MEDIA_TERM_SURFACE:
-		printInfo("Term surface\n");
-		disposeGraphics();
-		break;
-	case MEDIA_RESIZE_SURFACE:
-		printInfo("Resize surface ( %d, %d )\n",event->rect.x,event->rect.y);
-		state->width = event->rect.x;
-		state->height = event->rect.y;
-		state->pool->setBorders(event->rect.y/2.0,-event->rect.x/2.0,-event->rect.y/2.0,event->rect.x/2.0);
-		resizeGraphics(event->rect.x,event->rect.y);
-		state->ready = true;
-		break;
-	case MEDIA_MOTION:
-		pos = vec2(event->rect.x - state->width/2.0, state->height/2.0 - event->rect.y);
-		switch(event->action)
-		{
-		case MEDIA_ACTION_UP:
-			//printInfo("Up\n");
-			state->pool->dropCircles();
-			break;
-		case MEDIA_ACTION_DOWN:
-			//printInfo("Down\n");
-			state->pool->grabCircles(pos);
-			break;
-		case MEDIA_ACTION_MOVE:
-			//printInfo("Move\n");
-			state->pool->dragCircles(pos);
-			break;
-		default:
-			break;
-		}
-		//printInfo("Motion ( %d, %d )\n", static_cast<int>(pos.x()), static_cast<int>(pos.y()));
-		break;
-	case MEDIA_SENSOR:
-		switch(event->sensor)
-		{
-		case MEDIA_ACCELEROMETER:
-			state->gravity = -vec2(event->value.x,event->value.y)/20.0;
-			// printInfo("Accelerometer ( %f, %f, %f)\n",event->value.x,event->value.y,event->value.z);
-			break;
-		default:
-			break;
-		}
+		Media_disableSensor(app,MEDIA_SENSOR_ACCELEROMETER);
+		printInfo("Hide\n");
 		break;
 	default:
 		break;
 	}
 }
 
-void render(void *data)
+void handleSurfaceEvent(Media_App *app, const Media_SurfaceEvent *event)
 {
-	Pool *pool = static_cast<Pool*>(data);
+	State *state = static_cast<State*>(app->data);
+	switch(event->type)
+	{
+	case MEDIA_SURFACE_INIT:
+		printInfo("Init surface\n");
+		initGraphics();
+		break;
+	case MEDIA_SURFACE_TERM:
+		printInfo("Term surface\n");
+		disposeGraphics();
+		break;
+	case MEDIA_SURFACE_RESIZE:
+		printInfo("Resize surface ( %d, %d )\n",event->w,event->h);
+		state->width = event->w;
+		state->height = event->h;
+		state->pool->setBorders(event->h/2.0,-event->w/2.0,-event->h/2.0,event->w/2.0);
+		resizeGraphics(event->w,event->h);
+		state->ready = true;
+		break;
+	default:
+		break;
+	}
+}
+
+void handleMotionEvent(Media_App *app, const Media_MotionEvent *event)
+{
+	State *state = static_cast<State*>(app->data);
+	vec2 pos = vec2(event->x - state->width/2.0, state->height/2.0 - event->y);
+	switch(event->action)
+	{
+	case MEDIA_ACTION_UP:
+		//printInfo("Up\n");
+		state->pool->dropCircles();
+		break;
+	case MEDIA_ACTION_DOWN:
+		//printInfo("Down\n");
+		state->pool->grabCircles(pos);
+		break;
+	case MEDIA_ACTION_MOVE:
+		//printInfo("Move\n");
+		state->pool->dragCircles(pos);
+		break;
+	default:
+		break;
+	}
+	//printInfo("Motion ( %d, %d )\n", static_cast<int>(pos.x()), static_cast<int>(pos.y()));
+}
+
+void handleSensorEvent(Media_App *app, const Media_SensorEvent *event)
+{
+	State *state = static_cast<State*>(app->data);
+	switch(event->sensor)
+	{
+	case MEDIA_SENSOR_ACCELEROMETER:
+		state->gravity = -vec2(event->x,event->y)/20.0;
+		// printInfo("Accelerometer ( %f, %f, %f)\n",event->x,event->y,event->z);
+		break;
+	default:
+		break;
+	}
+}
+
+void render(Media_App *app)
+{
+	State *state = static_cast<State*>(app->data);
+	Pool *pool = state->pool;
 	clear();
 	pool->draw();
 }
 
-int main()
+int Media_main(Media_App *app)
 {
-	Media_init();
-	
 	Pool pool(40.0,1.0,1.0,20.0,20.0);
 	pool.addCircle(new Circle(60.0f,60.0f,vec2(-70.0,-50.0),BLUE));
 	pool.addCircle(new Circle(70.0f,70.0f,vec2(70.0,-50.0),GREEN));
 	pool.addCircle(new Circle(80.0f,80.0f,vec2(0.0,100.0),RED));
 	
 	State state = {0,0,&pool,0,0,false,vec2(0.0,-9.0)/20.0};
-	Media_setEventListener(handleEvent,static_cast<void*>(&state));
 	
-	Media_setRenderer(render,&pool);
+	app->data = static_cast<void*>(&state);
+	
+	app->listeners.app = &handleAppEvent;
+	app->listeners.surface = &handleSurfaceEvent;
+	app->listeners.motion = &handleMotionEvent;
+	app->listeners.sensor = &handleSensorEvent;
+	
+	app->renderer = &render;
 	
 	while(!state.done)
 	{
 		if(state.wait)
 		{
-			Media_waitForEvent();
+			Media_waitForEvent(app);
 		}
-		Media_handleEvents();
+		Media_handleEvents(app);
 		
 		if(state.ready)
 		{
@@ -134,11 +154,10 @@ int main()
 		}
 		
 		// printInfo("Frame\n");
-		Media_renderFrame();
+		Media_renderFrame(app);
 	}
 	
 	pool.forEachCircle([](Circle *c){delete c;});
 	
-	Media_quit();
 	return 0;
 }
