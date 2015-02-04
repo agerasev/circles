@@ -119,7 +119,7 @@ void render(Media_App *app)
 int Media_main(Media_App *app)
 {
 	Pool pool(40.0,1.0,1.0,20.0,20.0);
-	pool.addCircle(new Circle(60.0f,60.0f,vec2(-70.0,-50.0),BLUE));
+	pool.addCircle(new Circle(60.0f,60.0f,vec2(-70.0,-50.0),BLUE|(RED/32)));
 	pool.addCircle(new Circle(70.0f,70.0f,vec2(70.0,-50.0),GREEN));
 	pool.addCircle(new Circle(80.0f,80.0f,vec2(0.0,100.0),RED));
 	
@@ -134,13 +134,18 @@ int Media_main(Media_App *app)
 	
 	app->renderer = &render;
 	
-	while(!state.done)
+	for(;;)
 	{
 		if(state.wait)
 		{
 			Media_waitForEvent(app);
 		}
 		Media_handleEvents(app);
+		
+		if(state.done)
+		{
+			break;
+		}
 		
 		if(state.ready)
 		{

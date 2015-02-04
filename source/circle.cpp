@@ -64,5 +64,5 @@ void Circle::draw() const
 	setColor(color);
 	translate(tl);
 	transform(tf);
-	circle();
+	drawCircle();
 }
