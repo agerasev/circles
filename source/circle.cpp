@@ -61,7 +61,7 @@ void Circle::draw() const
 	tl[0] = static_cast<float>(pos.x());
 	tl[1] = static_cast<float>(pos.y());
 	
-	setColor(color);
+	setColorInt(color);
 	translate(tl);
 	transform(tf);
 	drawCircle();

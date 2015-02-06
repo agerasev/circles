@@ -18,12 +18,15 @@ _CXXFLAGS = -std=c++11
 _HEADERS = \
 	source/media/media.h \
 	source/graphics/graphics.h \
+	source/graphics/shader.h \
+	source/graphics/shader_source.h \
 	source/vec.hpp \
 	source/circle.hpp \
 	source/pool.hpp
 
 _SOURCES = \
 	source/graphics/graphics.c \
+	source/graphics/shader.c \
 	source/pool.cpp \
 	source/circle.cpp \
 	source/main.cpp
